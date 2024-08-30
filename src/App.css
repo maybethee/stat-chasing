@@ -1,0 +1,6 @@
+.statsContainer table,
+.statsContainer th,
+.statsContainer td {
+  border: 2px solid;
+  padding: 0.4rem 0.4rem;
+}
