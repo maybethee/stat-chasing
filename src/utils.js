@@ -34,8 +34,10 @@ const isPlayerWinner = (replayStats, playerName) => {
 
   // true if player name is on winning team
   return (
-    blueTeam.some((player) => player["name"] === playerName) &&
-    winningTeam === "blue"
+    (blueTeam.some((player) => player["name"] === playerName) &&
+      winningTeam === "blue") ||
+    (orangeTeam.some((player) => player["name"] === playerName) &&
+      winningTeam === "orange")
   );
 };
 
@@ -51,9 +53,10 @@ const getDemosInflicted = (replayStats, playerName) => {
 
 const getWinningTeam = (replayStats) => {
   const { blueTeam, orangeTeam } = getTeams(replayStats);
-  console.log("orange goals:", blueTeam[0]["stats"]["core"]["goals_against"]);
+  // console.log("orange goals:", blueTeam[0]["stats"]["core"]["goals_against"]);
   const blueGoals = orangeTeam[0]["stats"]["core"]["goals_against"];
   const orangeGoals = blueTeam[0]["stats"]["core"]["goals_against"];
+
   return blueGoals > orangeGoals ? "blue" : "orange";
 };
 

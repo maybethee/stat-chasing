@@ -15,7 +15,7 @@ function App() {
   const [playerId, setPlayerId] = useState("");
   const replayIds = new Set();
   // eventually this should be generated using the playerId/the input (either once it's compatible with names, or by using the inputted id)
-  const playerName = "tofu"; // Replace with the actual player name if needed
+  const playerName = "BijouBug"; // Replace with the actual player name if needed
 
   const fetchReplays = async (playerId) => {
     try {
@@ -102,6 +102,12 @@ function App() {
               </tr>
               {replays.map((replay, num = 0) => {
                 num++;
+                // console.log("id:", replay.replay_id);
+                console.log(
+                  "playlist:",
+                  replay["replay_stats"][0]["stats"]["playlist_id"]
+                );
+
                 return (
                   <tr key={replay.replay_id}>
                     <td>{num}</td>
