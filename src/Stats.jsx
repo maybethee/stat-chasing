@@ -1,8 +1,32 @@
+import { Bar, Pie } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
 import {
   getMapName,
   isPlayerWinner,
+  isGoalDifference,
   getPercentSupersonicSpeed,
   getDemosInflicted,
+  getTotalDistance,
 } from "./utils";
 
 function Stats({ replays, playerName }) {
@@ -29,13 +53,12 @@ function Stats({ replays, playerName }) {
     const avg = sum / replays.length;
     return avg.toFixed(2);
   }
-  console.log(replays);
+  // console.log(replays);
   const resultsPerMap = {};
 
   function addWinsPerMap() {
     replays.map((replay) => {
       const replayStats = replay["replay_stats"][0]["stats"];
-      // console.log(`player winner?: ${isPlayerWinner(replayStats, playerName)}`);
       const mapName = getMapName(replayStats);
       resultsPerMap[mapName] = 0;
       if (isPlayerWinner(replayStats, playerName)) {
@@ -43,6 +66,20 @@ function Stats({ replays, playerName }) {
       }
     });
     return resultsPerMap;
+  }
+
+  function sumTotalDistance() {
+    return replays.reduce(
+      (sum, replay) =>
+        sum + getTotalDistance(replay["replay_stats"][0]["stats"], playerName),
+      0
+    );
+  }
+
+  function avgDistance() {
+    const sum = sumTotalDistance();
+    const avg = sum / replays.length;
+    return avg.toFixed(2);
   }
 
   function mapWithMostWins(resultsPerMap) {
@@ -61,9 +98,9 @@ function Stats({ replays, playerName }) {
   }
 
   function formatMapWithMostWins() {
-    console.log(mapWithMostWins(addWinsPerMap()));
+    // console.log(mapWithMostWins(addWinsPerMap()));
     const { maxVal, maxKeys } = mapWithMostWins(resultsPerMap);
-    console.log(maxKeys.map((key) => `${key}: ${maxVal} wins`).join(", "));
+    // console.log(maxKeys.map((key) => `${key}: ${maxVal} wins`).join(", "));
     return maxKeys.map((key) => `${key}: ${maxVal} wins`).join(", ");
   }
 
@@ -113,11 +150,56 @@ function Stats({ replays, playerName }) {
     const overtimes = getOvertimes().map((replay) =>
       parseInt(replay["replay_stats"][0]["stats"]["overtime_seconds"], 10)
     );
-    // console.log(overtimes);
-    console.log("Filtered Overtimes:", overtimes);
+    // console.log("Filtered Overtimes:", overtimes);
     const longestOvertimeSeconds = Math.max(...overtimes);
     return formatOvertime(longestOvertimeSeconds);
   }
+
+  function gamesWonGoalDiffs() {
+    const goalDiffsArr = [];
+
+    // 5 times, do:
+    for (let n = 1; n <= 5; n++) {
+      const gamesAtNDiff = replays.filter((replay) => {
+        const isWinner = isPlayerWinner(
+          replay["replay_stats"][0]["stats"],
+          playerName
+        );
+        const nGoals = isGoalDifference(replay["replay_stats"][0]["stats"], n);
+        return isWinner && nGoals;
+      });
+      // console.log(gamesAtNDiff);
+      // console.log(gamesAtNDiff.length);
+      goalDiffsArr.push(gamesAtNDiff.length);
+    }
+    // console.log("games won diff array: ", goalDiffsArr);
+    return goalDiffsArr;
+  }
+
+  function gamesLostGoalDiffs() {
+    const goalDiffsArr = [];
+
+    // 5 times, do:
+    for (let n = 1; n <= 5; n++) {
+      const gamesAtNDiff = replays.filter((replay) => {
+        const isLoser = !isPlayerWinner(
+          replay["replay_stats"][0]["stats"],
+          playerName
+        );
+        const nGoals = isGoalDifference(replay["replay_stats"][0]["stats"], n);
+        return isLoser && nGoals;
+      });
+      // console.log(gamesAtNDiff);
+      // console.log(gamesAtNDiff.length);
+      goalDiffsArr.push(gamesAtNDiff.length);
+    }
+    // console.log("games lost diff array: ", goalDiffsArr);
+    return goalDiffsArr;
+  }
+
+  const combinedGoalDiffs = gamesWonGoalDiffs()
+    .reverse()
+    .concat(gamesLostGoalDiffs());
 
   function longestOvertimeWin() {
     const overtimes = replays
@@ -136,7 +218,7 @@ function Stats({ replays, playerName }) {
         return parseInt(overtimeSeconds, 10);
       });
 
-    console.log("Filtered Overtimes:", overtimes);
+    // console.log("Filtered Overtimes:", overtimes);
     const longestOvertimeSeconds = Math.max(...overtimes);
     return formatOvertime(longestOvertimeSeconds);
   }
@@ -158,7 +240,7 @@ function Stats({ replays, playerName }) {
         return parseInt(overtimeSeconds, 10);
       });
 
-    console.log("Filtered Overtimes:", overtimes);
+    // console.log("Filtered Overtimes:", overtimes);
     const longestOvertimeSeconds = Math.max(...overtimes);
     return formatOvertime(longestOvertimeSeconds);
   }
@@ -173,7 +255,50 @@ function Stats({ replays, playerName }) {
     });
     return Math.max(...demos);
   }
+
+  const winRatePieData = () => {
+    const winsAndLosses = [];
+    const totalWins = replays.filter((replay) => {
+      return isPlayerWinner(replay["replay_stats"][0]["stats"], playerName);
+    });
+
+    const totalLosses = replays.filter((replay) => {
+      return !isPlayerWinner(replay["replay_stats"][0]["stats"], playerName);
+    });
+
+    winsAndLosses.push(totalWins.length, totalLosses.length);
+
+    return winsAndLosses;
+  };
+
+  const backgroundColors = [
+    "rgba(75, 192, 192, 0.6)",
+    "rgba(75, 192, 192, 0.6)",
+    "rgba(75, 192, 192, 0.6)",
+    "rgba(75, 192, 192, 0.6)",
+    "rgba(75, 192, 192, 0.6)",
+    "rgba(255, 99, 132, 0.6)",
+    "rgba(255, 99, 132, 0.6)",
+    "rgba(255, 99, 132, 0.6)",
+    "rgba(255, 99, 132, 0.6)",
+    "rgba(255, 99, 132, 0.6)",
+  ];
+
+  const borderColors = [
+    "rgba(75, 192, 192, 1)",
+    "rgba(75, 192, 192, 1)",
+    "rgba(75, 192, 192, 1)",
+    "rgba(75, 192, 192, 1)",
+    "rgba(75, 192, 192, 1)",
+    "rgba(255, 99, 132, 1)",
+    "rgba(255, 99, 132, 1)",
+    "rgba(255, 99, 132, 1)",
+    "rgba(255, 99, 132, 1)",
+    "rgba(255, 99, 132, 1)",
+  ];
+
   const mostWinsMap = mapWithMostWins(addWinsPerMap());
+
   return (
     <div>
       <div style={{ fontSize: "1.1rem" }}>
@@ -201,6 +326,80 @@ function Stats({ replays, playerName }) {
         <br />
         <br />
         map(s) with most wins: {formatMapWithMostWins()}
+        <br />
+        <br />
+        average distance driven per game: {avgDistance()}
+        <br />
+        total distance driven across all games: {sumTotalDistance()}
+        <br />
+        <div style={{ position: "relative", width: "400px" }}>
+          <Pie
+            data={{
+              labels: ["games won", "games lost"],
+              datasets: [
+                {
+                  label: "Win Rate",
+                  data: winRatePieData(),
+                  backgroundColor: ["rgb(54, 162, 235)", "rgb(255, 99, 132)"],
+                  hoverOffset: 4,
+                },
+              ],
+            }}
+          />
+        </div>
+        <div style={{ position: "relative" }}>
+          <Bar
+            data={{
+              labels: [
+                "5+ goals",
+                "4 goals",
+                "3 goals",
+                "2 goals",
+                "1 goal",
+                "1 goal",
+                "2 goals",
+                "3 goals",
+                "4  goals",
+                "5+ goals",
+              ],
+              datasets: [
+                {
+                  // might just make a custom label...
+                  label: "Games Won | Games Lost",
+                  data: combinedGoalDiffs,
+                  backgroundColor: backgroundColors,
+                  borderColor: borderColors,
+                  borderWidth: 1,
+                },
+              ],
+            }}
+            options={{
+              maintainAspectRatio: true,
+              responsive: true,
+              scales: {
+                y: {
+                  ticks: {
+                    stepSize: 1,
+                  },
+                },
+              },
+              plugins: {
+                legend: {
+                  labels: {
+                    generateLabels: (chart) => {
+                      const { datasets } = chart.data;
+                      return datasets.map((dataset) => ({
+                        text: dataset.label,
+                        fillStyle: "transparent",
+                        strokeStyle: "transparent",
+                      }));
+                    },
+                  },
+                },
+              },
+            }}
+          />
+        </div>
         {/* {replays.map((replay, index) => {
           return (
             <ul key={replay.replay_id}>

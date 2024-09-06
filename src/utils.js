@@ -60,9 +60,34 @@ const getWinningTeam = (replayStats) => {
   return blueGoals > orangeGoals ? "blue" : "orange";
 };
 
+// for use with goal differential bar chart, remove 5+ conditional for other purposes
+const isGoalDifference = (replayStats, desiredDifference) => {
+  const { blueTeam, orangeTeam } = getTeams(replayStats);
+
+  const blueGoals = orangeTeam[0]["stats"]["core"]["goals_against"];
+  const orangeGoals = blueTeam[0]["stats"]["core"]["goals_against"];
+
+  if (desiredDifference === 5) {
+    return Math.abs(blueGoals - orangeGoals) >= desiredDifference
+      ? true
+      : false;
+  } else {
+    return Math.abs(blueGoals - orangeGoals) === desiredDifference
+      ? true
+      : false;
+  }
+};
+
+const getTotalDistance = (replayStats, playerName) => {
+  const playerStats = getPlayerStats(replayStats, playerName);
+  return playerStats ? playerStats["movement"]["total_distance"] : 0;
+};
+
 export {
   isPlayerWinner,
+  isGoalDifference,
   getDemosInflicted,
+  getTotalDistance,
   getPercentSupersonicSpeed,
   getMapName,
 };
