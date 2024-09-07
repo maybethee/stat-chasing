@@ -1,21 +1,23 @@
 import { useState, useEffect } from "react";
 import "./App.css";
-import {
-  getMapName,
-  isPlayerWinner,
-  getPercentSupersonicSpeed,
-  getDemosInflicted,
-} from "./utils";
+import { useReplays } from "./ReplaysContext";
 import Stats from "./Stats";
 
 function App() {
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [replays, setReplays] = useState([]);
+  const {
+    replays,
+    setReplays,
+    loading,
+    setLoading,
+    error,
+    setError,
+    playerName,
+    setPlayerName,
+  } = useReplays();
+
   const [playerId, setPlayerId] = useState("");
   const replayIds = new Set();
   // eventually this should be generated using the playerId/the input (either once it's compatible with names, or by using the inputted id)
-  const playerName = "BijouBug"; // Replace with the actual player name if needed
 
   const fetchReplays = async (playerId) => {
     try {
@@ -53,6 +55,8 @@ function App() {
   const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
+    // this will eventually need to be done programmatically using api?
+    setPlayerName("BijouBug");
     fetchReplays(playerId);
   };
 
@@ -84,14 +88,12 @@ function App() {
       </form>
 
       <div style={{ margin: "2rem" }}>
-        <h2>games:</h2>
-        <br />
         <div style={{ fontSize: "1.1rem" }}>
           <br />
           <Stats replays={replays} playerName={playerName} />
         </div>
         <br />
-        <div className="statsContainer">
+        {/* <div className="statsContainer">
           <table cellSpacing="30">
             <tbody>
               <tr style={{ fontWeight: "bold" }}>
@@ -132,7 +134,7 @@ function App() {
               })}
             </tbody>
           </table>
-        </div>
+        </div> */}
       </div>
     </div>
   );

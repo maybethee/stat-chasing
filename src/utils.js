@@ -1,4 +1,9 @@
-// these functions assume replay is the "replay_stats" of a single replay object
+const withReplayStats =
+  (fn) =>
+  (replay, ...args) => {
+    const replayStats = replay["replay_stats"][0]["stats"];
+    return fn(replayStats, ...args);
+  };
 
 const findPlayer = (team, playerName) => {
   return team ? team.find((player) => player["name"] === playerName) : null;
@@ -51,6 +56,11 @@ const getDemosInflicted = (replayStats, playerName) => {
   return playerStats ? playerStats["demo"]["inflicted"] : 0;
 };
 
+const getDemosTaken = (replayStats, playerName) => {
+  const playerStats = getPlayerStats(replayStats, playerName);
+  return playerStats ? playerStats["demo"]["taken"] : 0;
+};
+
 const getWinningTeam = (replayStats) => {
   const { blueTeam, orangeTeam } = getTeams(replayStats);
   // console.log("orange goals:", blueTeam[0]["stats"]["core"]["goals_against"]);
@@ -83,11 +93,17 @@ const getTotalDistance = (replayStats, playerName) => {
   return playerStats ? playerStats["movement"]["total_distance"] : 0;
 };
 
-export {
-  isPlayerWinner,
-  isGoalDifference,
-  getDemosInflicted,
-  getTotalDistance,
-  getPercentSupersonicSpeed,
-  getMapName,
+const getOvertimeSeconds = (replayStats) => {
+  return replayStats["overtime_seconds"];
+};
+
+export const wrappedUtils = {
+  isPlayerWinner: withReplayStats(isPlayerWinner),
+  isGoalDifference: withReplayStats(isGoalDifference),
+  getDemosInflicted: withReplayStats(getDemosInflicted),
+  getDemosTaken: withReplayStats(getDemosTaken),
+  getTotalDistance: withReplayStats(getTotalDistance),
+  getPercentSupersonicSpeed: withReplayStats(getPercentSupersonicSpeed),
+  getMapName: withReplayStats(getMapName),
+  getOvertimeSeconds: withReplayStats(getOvertimeSeconds),
 };
