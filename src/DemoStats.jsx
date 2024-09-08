@@ -74,6 +74,7 @@ function DemoStats() {
           }}
         />
       </div>
+      <br />
       <ul>
         {/* <li>average demos inflicted: {avgDemosInflicted()}</li>
         <li>average demos taken: {avgDemosTaken()}</li> */}

@@ -20,6 +20,30 @@ const getTeams = (replayStats) => {
   return { blueTeam, orangeTeam };
 };
 
+const joinNames = (names) => {
+  if (names.length === 0) return "";
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return names.join(" and ");
+
+  return names.slice(0, -1).join(", ") + ", and " + names[names.length - 1];
+};
+
+const getOpposingPlayerNames = (replayStats, playerName) => {
+  const { blueTeam, orangeTeam } = getTeams(replayStats);
+
+  let opposingTeam;
+
+  findPlayer(blueTeam, playerName)
+    ? (opposingTeam = orangeTeam)
+    : (opposingTeam = blueTeam);
+
+  const opponentNames = opposingTeam.map((player) => {
+    return player["name"];
+  });
+
+  return joinNames(opponentNames);
+};
+
 const getPlayerStats = (replayStats, playerName) => {
   const { blueTeam, orangeTeam } = getTeams(replayStats);
 
@@ -51,6 +75,21 @@ const getPercentSupersonicSpeed = (replayStats, playerName) => {
   return playerStats ? playerStats["movement"]["percent_supersonic_speed"] : 0;
 };
 
+const getAvgSpeed = (replayStats, playerName) => {
+  const playerStats = getPlayerStats(replayStats, playerName);
+  return playerStats ? playerStats["movement"]["avg_speed"] : 0;
+};
+
+const getBPM = (replayStats, playerName) => {
+  const playerStats = getPlayerStats(replayStats, playerName);
+  return playerStats ? playerStats["boost"]["bpm"] : 0;
+};
+
+const getBCPM = (replayStats, playerName) => {
+  const playerStats = getPlayerStats(replayStats, playerName);
+  return playerStats ? playerStats["boost"]["bcpm"] : 0;
+};
+
 const getDemosInflicted = (replayStats, playerName) => {
   const playerStats = getPlayerStats(replayStats, playerName);
   return playerStats ? playerStats["demo"]["inflicted"] : 0;
@@ -72,20 +111,20 @@ const getWinningTeam = (replayStats) => {
 
 // for use with goal differential bar chart, remove 5+ conditional for other purposes
 const isGoalDifference = (replayStats, desiredDifference) => {
+  if (desiredDifference === 5) {
+    return getGoalDifference(replayStats) >= desiredDifference ? true : false;
+  } else {
+    return getGoalDifference(replayStats) === desiredDifference ? true : false;
+  }
+};
+
+const getGoalDifference = (replayStats) => {
   const { blueTeam, orangeTeam } = getTeams(replayStats);
 
   const blueGoals = orangeTeam[0]["stats"]["core"]["goals_against"];
   const orangeGoals = blueTeam[0]["stats"]["core"]["goals_against"];
 
-  if (desiredDifference === 5) {
-    return Math.abs(blueGoals - orangeGoals) >= desiredDifference
-      ? true
-      : false;
-  } else {
-    return Math.abs(blueGoals - orangeGoals) === desiredDifference
-      ? true
-      : false;
-  }
+  return Math.abs(blueGoals - orangeGoals);
 };
 
 const getTotalDistance = (replayStats, playerName) => {
@@ -106,4 +145,9 @@ export const wrappedUtils = {
   getPercentSupersonicSpeed: withReplayStats(getPercentSupersonicSpeed),
   getMapName: withReplayStats(getMapName),
   getOvertimeSeconds: withReplayStats(getOvertimeSeconds),
+  getGoalDifference: withReplayStats(getGoalDifference),
+  getOpposingPlayerNames: withReplayStats(getOpposingPlayerNames),
+  getAvgSpeed: withReplayStats(getAvgSpeed),
+  getBPM: withReplayStats(getBPM),
+  getBCPM: withReplayStats(getBCPM),
 };

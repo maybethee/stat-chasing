@@ -3,6 +3,7 @@ import { useReplays } from "./ReplaysContext";
 import OvertimeStats from "./OvertimeStats";
 import WinLossStats from "./WinLossStats";
 import DemoStats from "./DemoStats";
+import MovementStats from "./MovementStats";
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -28,16 +29,6 @@ ChartJS.register(
 function Stats() {
   const { replays, playerName } = useReplays();
 
-  function avgSupersonic() {
-    const sum = replays.reduce(
-      (sum, replay) =>
-        sum + wrappedUtils.getPercentSupersonicSpeed(replay, playerName),
-      0
-    );
-    const avg = sum / replays.length;
-    return avg.toFixed(2);
-  }
-
   const resultsPerMap = {};
 
   function addWinsPerMap() {
@@ -49,19 +40,6 @@ function Stats() {
       }
     });
     return resultsPerMap;
-  }
-
-  function sumTotalDistance() {
-    return replays.reduce(
-      (sum, replay) => sum + wrappedUtils.getTotalDistance(replay, playerName),
-      0
-    );
-  }
-
-  function avgDistance() {
-    const sum = sumTotalDistance();
-    const avg = sum / replays.length;
-    return avg.toFixed(2);
   }
 
   function mapWithMostWins(resultsPerMap) {
@@ -84,6 +62,44 @@ function Stats() {
     const { maxVal, maxKeys } = mapWithMostWins(resultsPerMap);
     // console.log(maxKeys.map((key) => `${key}: ${maxVal} wins`).join(", "));
     return maxKeys.map((key) => `${key}: ${maxVal} wins`).join(", ");
+  }
+
+  // need to ensure this game is a winning game
+  function highestGoalDifferenceGame() {
+    const winningReplays = replays.filter((replay) => {
+      const isWinner = wrappedUtils.isPlayerWinner(replay, playerName);
+      return isWinner;
+    });
+    return winningReplays.reduce((maxReplay, replay) => {
+      const maxGoalDiff = wrappedUtils.getGoalDifference(maxReplay);
+      const currentGoalDiff = wrappedUtils.getGoalDifference(replay);
+      return currentGoalDiff > maxGoalDiff ? replay : maxReplay;
+    }, winningReplays[0]);
+  }
+
+  function formatBiggestWin() {
+    const biggestWin = highestGoalDifferenceGame();
+
+    // console.log(biggestWin["replay_stats"][0]["stats"]);
+    return (
+      "biggest win: " +
+      wrappedUtils.getGoalDifference(biggestWin) +
+      " " +
+      "goal lead against " +
+      // eventually: link to player profiles on ballchasing (or steam profile if steam?)
+      wrappedUtils.getOpposingPlayerNames(biggestWin) +
+      " " +
+      "on " +
+      // eventually: link to replay on ballchasing
+      new Date(
+        biggestWin["replay_stats"][0]["stats"]["date"]
+      ).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      }) +
+      "."
+    );
   }
 
   function gamesWonGoalDiffs() {
@@ -152,6 +168,10 @@ function Stats() {
     "rgba(255, 99, 132, 1)",
   ];
 
+  // replays.map((replay) => {
+  //   wrappedUtils.getOpposingPlayerNames(replay, playerName);
+  // });
+
   const mostWinsMap = mapWithMostWins(addWinsPerMap());
 
   return (
@@ -167,13 +187,9 @@ function Stats() {
         <DemoStats />
         <br />
         <br />
-        map(s) with most wins: {formatMapWithMostWins()}
+        <MovementStats />
+        {/* map(s) with most wins: {formatMapWithMostWins()} */}
         <br />
-        average % supersonic: {avgSupersonic()}%
-        <br />
-        average distance driven per game: {avgDistance()}
-        <br />
-        total distance driven across all games: {sumTotalDistance()}
         <br />
         <div style={{ position: "relative" }}>
           <Bar
@@ -228,6 +244,7 @@ function Stats() {
             }}
           />
         </div>
+        <p>{formatBiggestWin()}</p>
       </div>
     </div>
   );

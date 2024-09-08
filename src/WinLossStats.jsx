@@ -1,5 +1,4 @@
 import { useReplays } from "./ReplaysContext";
-// import { isPlayerWinner } from "./utils";
 import { wrappedUtils } from "./utils";
 import { Pie } from "react-chartjs-2";
 import {
@@ -60,7 +59,7 @@ function WinLossStats() {
             labels: ["games won", "games lost"],
             datasets: [
               {
-                label: "Win Rate",
+                label: "Games",
                 data: winRatePieData(),
                 backgroundColor: ["rgb(54, 162, 235)", "rgb(255, 99, 132)"],
                 hoverOffset: 4,
@@ -69,6 +68,7 @@ function WinLossStats() {
           }}
         />
       </div>
+      <br />
       <ul>
         <li>win rate: {winRate()}</li>
       </ul>
