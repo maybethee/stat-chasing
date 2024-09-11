@@ -1,43 +1,73 @@
+import { useState } from "react";
 import { useReplays } from "./ReplaysContext";
 import { wrappedUtils } from "./utils";
 
 function MovementStats() {
   const { replays, playerName } = useReplays();
+  const [playlist, setPlaylist] = useState(null);
+
+  function filterReplays() {
+    let replaysArr = replays;
+
+    if (playlist) {
+      replaysArr = replays.filter((replay) => {
+        const inPlaylist = wrappedUtils.inPlaylist(replay, playlist);
+        return inPlaylist;
+      });
+    }
+
+    return replaysArr || [];
+  }
 
   function avgSupersonic() {
-    const sum = replays.reduce(
+    const filteredReplays = filterReplays();
+
+    // console.log(
+    //   "remaining replay id:",
+    //   filteredReplays.map((replay) => {
+    //     return replay["replay_stats"][0]["stats"]["playlist_id"];
+    //   })
+    // );
+
+    const sum = filteredReplays.reduce(
       (sum, replay) =>
         sum + wrappedUtils.getPercentSupersonicSpeed(replay, playerName),
       0
     );
-    const avg = sum / replays.length;
+    const avg = sum / filteredReplays.length;
     return avg.toFixed(2);
   }
 
   function avgBPM() {
-    const sum = replays.reduce(
+    const filteredReplays = filterReplays();
+
+    const sum = filteredReplays.reduce(
       (sum, replay) => sum + wrappedUtils.getBPM(replay, playerName),
       0
     );
-    const avg = sum / replays.length;
+    const avg = sum / filteredReplays.length;
     return avg.toFixed(2);
   }
 
   function avgBCPM() {
-    const sum = replays.reduce(
+    const filteredReplays = filterReplays();
+
+    const sum = filteredReplays.reduce(
       (sum, replay) => sum + wrappedUtils.getBCPM(replay, playerName),
       0
     );
-    const avg = sum / replays.length;
+    const avg = sum / filteredReplays.length;
     return avg.toFixed(2);
   }
 
   function avgOfAvgSpeed() {
-    const sum = replays.reduce(
+    const filteredReplays = filterReplays();
+
+    const sum = filteredReplays.reduce(
       (sum, replay) => sum + wrappedUtils.getAvgSpeed(replay, playerName),
       0
     );
-    return sum / replays.length;
+    return sum / filteredReplays.length;
   }
 
   function formatAvgOfAvgSpeed() {
@@ -47,16 +77,18 @@ function MovementStats() {
     return avgAsPercent.toFixed(2) + "%" + " (" + Math.trunc(avg) + "uu/s)";
   }
 
-  function sumTotalDistance() {
-    return replays.reduce(
+  // default should be the initial replays array
+  function sumTotalDistance(replaysArr = replays) {
+    return replaysArr.reduce(
       (sum, replay) => sum + wrappedUtils.getTotalDistance(replay, playerName),
       0
     );
   }
 
   function avgDistance() {
-    const sum = sumTotalDistance();
-    const avg = sum / replays.length;
+    const filteredReplays = filterReplays();
+    const sum = sumTotalDistance(filteredReplays);
+    const avg = sum / filteredReplays.length;
     return avg.toFixed(2);
   }
 
@@ -64,12 +96,23 @@ function MovementStats() {
     <div>
       <h2>Movement/Speed Stats</h2>
       <br />
+      <button onClick={() => setPlaylist(null)}>all games</button>
+      <button onClick={() => setPlaylist("ranked-duels")}>1s</button>
+      <button onClick={() => setPlaylist("ranked-doubles")}>2s</button>
+      <button onClick={() => setPlaylist("ranked-standard")}>3s</button>
+      <br />
+      <br />
+
       <ul>
         <li>average % supersonic: {avgSupersonic()}%</li>
         <li>average overall speed: {formatAvgOfAvgSpeed()}</li>
+        <br />
+
         <li>average boost used per minute: {avgBPM()}</li>
         <li>average boost collected per minute: {avgBCPM()}</li>
+        <br />
         <li>average distance driven per game: {avgDistance()}</li>
+        <br />
         <li> total distance driven across all games: {sumTotalDistance()}</li>
       </ul>
     </div>

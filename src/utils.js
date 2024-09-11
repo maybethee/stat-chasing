@@ -9,6 +9,10 @@ const findPlayer = (team, playerName) => {
   return team ? team.find((player) => player["name"] === playerName) : null;
 };
 
+const inPlaylist = (replayStats, playlist) => {
+  return replayStats["playlist_id"] === playlist ? true : false;
+};
+
 const getTeams = (replayStats) => {
   const blueTeam = replayStats["blue"] ? replayStats["blue"]["players"] : [];
   const orangeTeam = replayStats["orange"]
@@ -150,4 +154,5 @@ export const wrappedUtils = {
   getAvgSpeed: withReplayStats(getAvgSpeed),
   getBPM: withReplayStats(getBPM),
   getBCPM: withReplayStats(getBCPM),
+  inPlaylist: withReplayStats(inPlaylist),
 };

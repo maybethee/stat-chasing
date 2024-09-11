@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./App.css";
 import { useReplays } from "./ReplaysContext";
 import Stats from "./Stats";
@@ -17,6 +17,7 @@ function App() {
 
   const [playerId, setPlayerId] = useState("");
   const replayIds = new Set();
+  const initialFetch = useRef(true);
   // eventually this should be generated using the playerId/the input (either once it's compatible with names, or by using the inputted id)
 
   const fetchReplays = async (playerId) => {
@@ -33,6 +34,7 @@ function App() {
         throw new Error("server error");
       }
       const data = await response.json();
+      console.log("fetched replays:", data);
       const uniqueReplays = data.filter((replay) => {
         if (replayIds.has(replay.replay_id)) {
           return false;
@@ -41,6 +43,8 @@ function App() {
           return true;
         }
       });
+      console.log("Unique replays:", uniqueReplays);
+
       setReplays((prevReplays) => [...prevReplays, ...uniqueReplays]);
       const endTime = new Date().getTime();
       const apiResponseTime = endTime - startTime;
@@ -61,7 +65,10 @@ function App() {
   };
 
   useEffect(() => {
-    fetchReplays("steam:76561198136291441");
+    if (initialFetch.current) {
+      initialFetch.current = false;
+      fetchReplays("steam:76561198136291441");
+    }
   }, []);
 
   if (loading) return <div className="loading">LOADING...</div>;
@@ -72,6 +79,12 @@ function App() {
         again.
       </p>
     );
+
+  console.log(
+    replays.map((replay) => {
+      return replay["replay_stats"][0]["stats"];
+    })
+  );
 
   return (
     <div>

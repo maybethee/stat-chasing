@@ -244,6 +244,7 @@ function Stats() {
             }}
           />
         </div>
+        <br />
         <p>{formatBiggestWin()}</p>
       </div>
     </div>

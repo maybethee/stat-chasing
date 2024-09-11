@@ -1,5 +1,4 @@
 import { useReplays } from "./ReplaysContext";
-// import { isPlayerWinner } from "./utils";
 import { wrappedUtils } from "./utils";
 
 function OvertimeStats() {
@@ -76,7 +75,6 @@ function OvertimeStats() {
     <div>
       <h2>Overtime Stats</h2>
       <br />
-
       <ul>
         <li>% games go to overtime: {overtimeGamesPercent()}</li>
         <li>longest overtime: {longestOvertime()}</li>
