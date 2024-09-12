@@ -57,6 +57,10 @@ const getPlayerStats = (replayStats, playerName) => {
   return player ? player["stats"] : null;
 };
 
+const splitReplayDate = (replayStats) => {
+  return replayStats["date"].split("T")[0];
+};
+
 const getMapName = (replayStats) => {
   return replayStats["map_name"];
 };
@@ -155,4 +159,5 @@ export const wrappedUtils = {
   getBPM: withReplayStats(getBPM),
   getBCPM: withReplayStats(getBCPM),
   inPlaylist: withReplayStats(inPlaylist),
+  splitReplayDate: withReplayStats(splitReplayDate),
 };

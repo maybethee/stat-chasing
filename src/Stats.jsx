@@ -29,41 +29,6 @@ ChartJS.register(
 function Stats() {
   const { replays, playerName } = useReplays();
 
-  const resultsPerMap = {};
-
-  function addWinsPerMap() {
-    replays.map((replay) => {
-      const mapName = wrappedUtils.getMapName(replay);
-      resultsPerMap[mapName] = 0;
-      if (wrappedUtils.isPlayerWinner(replay, playerName)) {
-        resultsPerMap[mapName] = resultsPerMap[mapName] + 1;
-      }
-    });
-    return resultsPerMap;
-  }
-
-  function mapWithMostWins(resultsPerMap) {
-    return Object.entries(resultsPerMap).reduce(
-      (acc, [mapName, wins]) => {
-        if (wins > acc.maxVal) {
-          acc.maxVal = wins;
-          acc.maxKeys = [mapName];
-        } else if (wins === acc.maxVal) {
-          acc.maxKeys.push(mapName);
-        }
-        return acc;
-      },
-      { maxVal: 0, maxKeys: [] }
-    );
-  }
-
-  function formatMapWithMostWins() {
-    // console.log(mapWithMostWins(addWinsPerMap()));
-    const { maxVal, maxKeys } = mapWithMostWins(resultsPerMap);
-    // console.log(maxKeys.map((key) => `${key}: ${maxVal} wins`).join(", "));
-    return maxKeys.map((key) => `${key}: ${maxVal} wins`).join(", ");
-  }
-
   // need to ensure this game is a winning game
   function highestGoalDifferenceGame() {
     const winningReplays = replays.filter((replay) => {
@@ -138,6 +103,180 @@ function Stats() {
     return goalDiffsArr;
   }
 
+  function groupReplaysByMap() {
+    const mapGroups = {};
+    replays.forEach((replay) => {
+      const mapName = wrappedUtils.getMapName(replay);
+      if (!mapGroups[mapName]) {
+        mapGroups[mapName] = [];
+      }
+      mapGroups[mapName].push(replay);
+    });
+    return mapGroups;
+  }
+
+  function groupWinsByMap(mapGroups) {
+    const winsByMap = {};
+    for (const mapName in mapGroups) {
+      winsByMap[mapName] = mapGroups[mapName].reduce((count, replay) => {
+        return (
+          count + (wrappedUtils.isPlayerWinner(replay, playerName) ? 1 : 0)
+        );
+      }, 0);
+    }
+    return winsByMap;
+  }
+
+  function mapWithMostWins(winsByMap) {
+    return Object.entries(winsByMap).reduce(
+      (acc, [mapName, wins]) => {
+        if (wins > acc.maxVal) {
+          acc.maxVal = wins;
+          acc.maxKeys = [mapName];
+        } else if (wins === acc.maxVal) {
+          acc.maxKeys.push(mapName);
+        }
+        return acc;
+      },
+      { maxVal: 0, maxKeys: [] }
+    );
+  }
+
+  const mapWithMostReplays = (mapGroups) => {
+    return Object.entries(mapGroups).reduce(
+      (acc, [mapName, replays]) => {
+        const count = replays.length; // Get the number of replays for each date
+        if (count > acc.maxVal) {
+          acc.maxVal = count;
+          acc.maxKeys = [mapName];
+        } else if (count === acc.maxVal) {
+          acc.maxKeys.push(mapName);
+        }
+        return acc;
+      },
+      { maxVal: 0, maxKeys: [] }
+    );
+  };
+
+  function formatMapWithMostWins() {
+    // console.log(mapWithMostWins(addWinsPerMap()));
+    const mapGroups = groupReplaysByMap(replays);
+    const winsByMap = groupWinsByMap(mapGroups);
+    const { maxVal, maxKeys } = mapWithMostWins(winsByMap);
+
+    return (
+      "map(s) with most wins: " +
+      maxKeys.map((key) => `${key}, ${maxVal} wins`).join(", ")
+    );
+  }
+
+  function formatMapWithMostReplays() {
+    // console.log(mapWithMostWins(addWinsPerMap()));
+    const mapGroups = groupReplaysByMap(replays);
+    const { maxVal, maxKeys } = mapWithMostReplays(mapGroups);
+
+    return (
+      "map(s) with most played games: " +
+      maxKeys.map((key) => `${key}, with ${maxVal} games`).join(", ")
+    );
+  }
+
+  //
+
+  function groupReplaysByDate() {
+    const dateGroups = {};
+    replays.forEach((replay) => {
+      const date = wrappedUtils.splitReplayDate(replay);
+      if (!dateGroups[date]) {
+        dateGroups[date] = [];
+      }
+      dateGroups[date].push(replay);
+    });
+    return dateGroups;
+  }
+
+  function groupWinsByDate(dateGroups) {
+    const winsByDate = {};
+    for (const date in dateGroups) {
+      winsByDate[date] = dateGroups[date].reduce((count, replay) => {
+        return (
+          count + (wrappedUtils.isPlayerWinner(replay, playerName) ? 1 : 0)
+        );
+      }, 0);
+    }
+    return winsByDate;
+  }
+
+  function dateWithMostWins(winsByDate) {
+    return Object.entries(winsByDate).reduce(
+      (acc, [date, wins]) => {
+        if (wins > acc.maxVal) {
+          acc.maxVal = wins;
+          acc.maxKeys = [date];
+        } else if (wins === acc.maxVal) {
+          acc.maxKeys.push(date);
+        }
+        return acc;
+      },
+      { maxVal: 0, maxKeys: [] }
+    );
+  }
+
+  const dateWithMostReplays = (dateGroups) => {
+    return Object.entries(dateGroups).reduce(
+      (acc, [date, replays]) => {
+        const count = replays.length; // Get the number of replays for each date
+        if (count > acc.maxVal) {
+          acc.maxVal = count;
+          acc.maxKeys = [date];
+        } else if (count === acc.maxVal) {
+          acc.maxKeys.push(date);
+        }
+        return acc;
+      },
+      { maxVal: 0, maxKeys: [] }
+    );
+  };
+
+  function formatDateWithMostWins() {
+    const dateGroups = groupReplaysByDate(replays);
+    const winsByDate = groupWinsByDate(dateGroups);
+    const { maxVal, maxKeys } = dateWithMostWins(winsByDate);
+
+    return (
+      "date(s) with most wins: " +
+      maxKeys
+        .map((key) => {
+          const keyDate = new Date(key).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          });
+          return `${keyDate}, with ${maxVal} wins`;
+        })
+        .join(", ")
+    );
+  }
+
+  function formatDateWithMostReplays() {
+    const dateGroups = groupReplaysByDate(replays);
+    const { maxVal, maxKeys } = dateWithMostReplays(dateGroups);
+
+    return (
+      "date(s) with most played games: " +
+      maxKeys
+        .map((key) => {
+          const keyDate = new Date(key).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          });
+          return `${keyDate}, with ${maxVal} games`;
+        })
+        .join(", ")
+    );
+  }
+
   const combinedGoalDiffs = gamesWonGoalDiffs()
     .reverse()
     .concat(gamesLostGoalDiffs());
@@ -168,14 +307,19 @@ function Stats() {
     "rgba(255, 99, 132, 1)",
   ];
 
-  // replays.map((replay) => {
-  //   wrappedUtils.getOpposingPlayerNames(replay, playerName);
-  // });
-
-  const mostWinsMap = mapWithMostWins(addWinsPerMap());
-
   return (
     <div>
+      {formatDateWithMostReplays()}
+      <br />
+      <br />
+      {formatDateWithMostWins()}
+      <br />
+      <br />
+      {formatMapWithMostReplays()}
+      <br />
+      <br />
+      {formatMapWithMostWins()}
+
       <div style={{ fontSize: "1.1rem" }}>
         <br />
         <WinLossStats />
