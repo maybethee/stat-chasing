@@ -258,6 +258,40 @@ function Stats() {
     );
   }
 
+  function avgGamesPlayedPerSession() {
+    // maybe differentiate this from avg games played per day including days where no games were played, since this is currently more like "games played per session" which isn't that useless ig but maybe just not what i initially intended
+
+    // in the case of all days and not just sessions, i may have to start with the real date first, and do some kind of "if datePlayed, date[1].length, else 0 and then add totals..., starting from first existing date and ending on last existing date. shouldn't be too hard, but not sure how to match the dates yet, maybe just the same as below"
+
+    // let startDate = new Date(Object.keys(dateGroups)[0]);
+    // const endDate = new Date(Object.keys(dateGroups)[-1]);
+
+    // while (startDate <= endDate) {
+    //   console.log("start");
+    //   // if (Object.entries(dateGroudateGroupsps).includes(startDate)) {
+    //   // Object.keys(dateGroups).find(())startDate
+    //   // }
+
+    //   let newDate = startDate.setDate(loop.getDate() + 1);
+    //   startDate = new Date(newDate);
+    // }
+
+    const dateGroups = groupReplaysByDate(replays);
+    console.log("date groups arr:", dateGroups);
+
+    let gamesPlayed = [];
+    Object.entries(dateGroups).forEach((date) => {
+      // console.log("date", date[1].length);
+      gamesPlayed.push(date[1].length);
+    });
+
+    console.log("games played:", gamesPlayed);
+
+    const sum = gamesPlayed.reduce((sum, date) => sum + date, 0);
+    const avg = sum / gamesPlayed.length;
+    return avg.toFixed(2);
+  }
+
   function formatDateWithMostReplays() {
     const dateGroups = groupReplaysByDate(replays);
     const { maxVal, maxKeys } = dateWithMostReplays(dateGroups);
@@ -309,6 +343,9 @@ function Stats() {
 
   return (
     <div>
+      average games played per session: {avgGamesPlayedPerSession()}
+      <br />
+      <br />
       {formatDateWithMostReplays()}
       <br />
       <br />
@@ -319,7 +356,6 @@ function Stats() {
       <br />
       <br />
       {formatMapWithMostWins()}
-
       <div style={{ fontSize: "1.1rem" }}>
         <br />
         <WinLossStats />
