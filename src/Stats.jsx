@@ -225,7 +225,7 @@ function Stats() {
   const dateWithMostReplays = (dateGroups) => {
     return Object.entries(dateGroups).reduce(
       (acc, [date, replays]) => {
-        const count = replays.length; // Get the number of replays for each date
+        const count = replays.length;
         if (count > acc.maxVal) {
           acc.maxVal = count;
           acc.maxKeys = [date];
@@ -292,6 +292,34 @@ function Stats() {
     return avg.toFixed(2);
   }
 
+  function avgGamesPlayedPerDay() {
+    const dateGroups = groupReplaysByDate(replays);
+    // console.log("date groups arr:", dateGroups);
+
+    const dates = Object.keys(dateGroups).sort();
+    const firstDate = new Date(dates[0]);
+    const lastDate = new Date(dates[dates.length - 1]);
+
+    let currentDate = new Date(firstDate);
+    let gamesPlayed = [];
+
+    while (currentDate <= lastDate) {
+      const dateString = currentDate.toISOString().split("T")[0];
+      if (dateGroups[dateString]) {
+        gamesPlayed.push(dateGroups[dateString].length);
+      } else {
+        gamesPlayed.push(0);
+      }
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    // console.log("games played:", gamesPlayed);
+
+    const sum = gamesPlayed.reduce((sum, games) => sum + games, 0);
+    const avg = sum / gamesPlayed.length;
+    return avg.toFixed(2);
+  }
+
   function formatDateWithMostReplays() {
     const dateGroups = groupReplaysByDate(replays);
     const { maxVal, maxKeys } = dateWithMostReplays(dateGroups);
@@ -346,6 +374,9 @@ function Stats() {
       average games played per session: {avgGamesPlayedPerSession()}
       <br />
       <br />
+      average games played per day: {avgGamesPlayedPerDay()}
+      <br />
+      <br />
       {formatDateWithMostReplays()}
       <br />
       <br />
@@ -368,7 +399,6 @@ function Stats() {
         <br />
         <br />
         <MovementStats />
-        {/* map(s) with most wins: {formatMapWithMostWins()} */}
         <br />
         <br />
         <div style={{ position: "relative" }}>
