@@ -259,23 +259,6 @@ function Stats() {
   }
 
   function avgGamesPlayedPerSession() {
-    // maybe differentiate this from avg games played per day including days where no games were played, since this is currently more like "games played per session" which isn't that useless ig but maybe just not what i initially intended
-
-    // in the case of all days and not just sessions, i may have to start with the real date first, and do some kind of "if datePlayed, date[1].length, else 0 and then add totals..., starting from first existing date and ending on last existing date. shouldn't be too hard, but not sure how to match the dates yet, maybe just the same as below"
-
-    // let startDate = new Date(Object.keys(dateGroups)[0]);
-    // const endDate = new Date(Object.keys(dateGroups)[-1]);
-
-    // while (startDate <= endDate) {
-    //   console.log("start");
-    //   // if (Object.entries(dateGroudateGroupsps).includes(startDate)) {
-    //   // Object.keys(dateGroups).find(())startDate
-    //   // }
-
-    //   let newDate = startDate.setDate(loop.getDate() + 1);
-    //   startDate = new Date(newDate);
-    // }
-
     const dateGroups = groupReplaysByDate(replays);
     console.log("date groups arr:", dateGroups);
 
@@ -343,6 +326,36 @@ function Stats() {
     .reverse()
     .concat(gamesLostGoalDiffs());
 
+  // note: i was thinking about whether i should be filtering the replays array in these kinds of functions because i'm currently fetching replays via uploader id, which, if i'm looking for stats for 'tofu' in 'BijouBug' uploaded replays, they may be skewed because i won't be in all of  his replays (when he plays 2s with andre for example)
+
+  // however, i think this would be unnecessarily fixing a problem i should fix earlier in my backend. namely, i should filter by player_id as i'd done at the start, and ensure i'm not getting duplicates by filtering those via the GUID (a constant ID even among dup replays)
+  function avgMVPInAllGames() {
+    const sum = replays.reduce((sum, replay) => {
+      if (wrappedUtils.isPlayerMVP(replay, playerName)) {
+        return sum + 1;
+      }
+      return sum;
+    }, 0);
+    const avg = sum / replays.length;
+    return avg.toFixed(2);
+  }
+
+  function avgMVPInWins() {
+    // re: above note: this filter is necessary to differentiate from the above statistic, so do not remove this one
+    const filteredReplays = replays.filter((replay) => {
+      const isWinner = wrappedUtils.isPlayerWinner(replay, playerName);
+      return isWinner;
+    });
+    const sum = filteredReplays.reduce((sum, replay) => {
+      if (wrappedUtils.isPlayerMVP(replay, playerName)) {
+        return sum + 1;
+      }
+      return sum;
+    }, 0);
+    const avg = sum / filteredReplays.length;
+    return avg.toFixed(2);
+  }
+
   const backgroundColors = [
     "rgba(75, 192, 192, 0.6)",
     "rgba(75, 192, 192, 0.6)",
@@ -371,6 +384,12 @@ function Stats() {
 
   return (
     <div>
+      average MVPs out of all games: {avgMVPInAllGames()}
+      <br />
+      <br />
+      average MVPs out of only wins: {avgMVPInWins()}
+      <br />
+      <br />
       average games played per session: {avgGamesPlayedPerSession()}
       <br />
       <br />

@@ -144,6 +144,12 @@ const getOvertimeSeconds = (replayStats) => {
   return replayStats["overtime_seconds"];
 };
 
+const isPlayerMVP = (replayStats, playerName) => {
+  const playerStats = getPlayerStats(replayStats, playerName);
+
+  return playerStats ? playerStats["core"]["mvp"] : null;
+};
+
 export const wrappedUtils = {
   isPlayerWinner: withReplayStats(isPlayerWinner),
   isGoalDifference: withReplayStats(isGoalDifference),
@@ -160,4 +166,5 @@ export const wrappedUtils = {
   getBCPM: withReplayStats(getBCPM),
   inPlaylist: withReplayStats(inPlaylist),
   splitReplayDate: withReplayStats(splitReplayDate),
+  isPlayerMVP: withReplayStats(isPlayerMVP),
 };

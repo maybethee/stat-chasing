@@ -18,7 +18,6 @@ function App() {
   const [playerId, setPlayerId] = useState("");
   const replayIds = new Set();
   const initialFetch = useRef(true);
-  // eventually this should be generated using the playerId/the input (either once it's compatible with names, or by using the inputted id)
 
   const fetchReplays = async (playerId) => {
     try {
@@ -60,14 +59,15 @@ function App() {
     e.preventDefault();
     setLoading(true);
     // this will eventually need to be done programmatically using api?
-    setPlayerName("BijouBug");
+    setPlayerName("tofu");
     fetchReplays(playerId);
   };
 
   useEffect(() => {
     if (initialFetch.current) {
       initialFetch.current = false;
-      fetchReplays("steam:76561198136291441");
+      fetchReplays("steam:76561198835242233");
+      // fetchReplays("steam:76561198136291441");
     }
   }, []);
 
