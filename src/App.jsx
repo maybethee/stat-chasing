@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import "./App.css";
 import { useReplays } from "./ReplaysContext";
+import { wrappedUtils } from "./utils";
+
 import Stats from "./Stats";
 
 function App() {
@@ -16,7 +18,7 @@ function App() {
   } = useReplays();
 
   const [playerId, setPlayerId] = useState("");
-  const replayIds = new Set();
+  const matchGuids = new Set();
   const initialFetch = useRef(true);
 
   const fetchReplays = async (playerId) => {
@@ -35,16 +37,17 @@ function App() {
       const data = await response.json();
       console.log("fetched replays:", data);
       const uniqueReplays = data.filter((replay) => {
-        if (replayIds.has(replay.replay_id)) {
+        if (matchGuids.has(replay["replay_stats"][0]["stats"]["match_guid"])) {
           return false;
         } else {
-          replayIds.add(replay.replay_id);
+          matchGuids.add(replay["replay_stats"][0]["stats"]["match_guid"]);
           return true;
         }
       });
       console.log("Unique replays:", uniqueReplays);
 
-      setReplays((prevReplays) => [...prevReplays, ...uniqueReplays]);
+      // setReplays((prevReplays) => [...prevReplays, ...uniqueReplays]);
+      setReplays([...uniqueReplays]);
       const endTime = new Date().getTime();
       const apiResponseTime = endTime - startTime;
       console.log("result:", apiResponseTime, "ms");
@@ -55,19 +58,24 @@ function App() {
     }
   };
 
+  // currently have to submit twice the first time before stats component appears, perhaps because of order of things?
   const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
-    // this will eventually need to be done programmatically using api?
-    setPlayerName("tofu");
     fetchReplays(playerId);
+    getPlayerName(playerId);
   };
+
+  function getPlayerName(playerId) {
+    const splitId = playerId.split(":")[1];
+    const newPlayerName = wrappedUtils.getPlayerNameById(replays[0], splitId);
+    setPlayerName(newPlayerName);
+  }
 
   useEffect(() => {
     if (initialFetch.current) {
       initialFetch.current = false;
-      fetchReplays("steam:76561198835242233");
-      // fetchReplays("steam:76561198136291441");
+      fetchReplays(playerId);
     }
   }, []);
 
@@ -80,6 +88,7 @@ function App() {
       </p>
     );
 
+  console.log("player name:", playerName);
   console.log(
     replays.map((replay) => {
       return replay["replay_stats"][0]["stats"];
@@ -88,67 +97,41 @@ function App() {
 
   return (
     <div>
-      <h1>stats</h1>
+      <h1>Statchasing</h1>
 
       <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={playerId}
-          onChange={(e) => setPlayerId(e.target.value)}
-          placeholder="Enter Player ID"
-        />
+        <label>
+          player IDs can be found in the URL of a player's Ballchasing profile,
+          formatted as the platform followed by the ID number/name, replacing
+          the slash (/) in the URL with a colon (:)
+          <br />
+          <br />
+          steam:76561198136291441
+          <br />
+          epic:b843b77c31e74c6fa970db08f5796805
+          <br />
+          ps4:badwifibro
+          <br />
+          <input
+            type="text"
+            value={playerId}
+            onChange={(e) => setPlayerId(e.target.value)}
+            placeholder="Enter Player ID"
+          />
+        </label>
         <button type="submit">Get Replays</button>
       </form>
 
-      <div style={{ margin: "2rem" }}>
-        <div style={{ fontSize: "1.1rem" }}>
+      {/* would like to display a message when a player wasn't found/when player has no replays available */}
+      {playerName && (
+        <div style={{ margin: "2rem" }}>
+          <div style={{ fontSize: "1.1rem" }}>
+            <br />
+            <Stats replays={replays} playerName={playerName} />
+          </div>
           <br />
-          <Stats replays={replays} playerName={playerName} />
         </div>
-        <br />
-        {/* <div className="statsContainer">
-          <table cellSpacing="30">
-            <tbody>
-              <tr style={{ fontWeight: "bold" }}>
-                <th>No.</th>
-                <th>Replay ID</th>
-                <th>% supersonic speed</th>
-                <th>demos inflicted</th>
-              </tr>
-              {replays.map((replay, num = 0) => {
-                num++;
-                // console.log("id:", replay.replay_id);
-                console.log(
-                  "playlist:",
-                  replay["replay_stats"][0]["stats"]["playlist_id"]
-                );
-
-                return (
-                  <tr key={replay.replay_id}>
-                    <td>{num}</td>
-                    <td>{replay.replay_id}</td>
-                    <td>
-                      {(
-                        getPercentSupersonicSpeed(
-                          replay["replay_stats"][0]["stats"],
-                          playerName
-                        ) || 0
-                      ).toFixed(2)}
-                      %
-                    </td>
-                    <td>
-                      {getDemosInflicted(
-                        replay["replay_stats"][0]["stats"],
-                        playerName
-                      ) || 0}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div> */}
-      </div>
+      )}
     </div>
   );
 }

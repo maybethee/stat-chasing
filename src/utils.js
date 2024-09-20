@@ -9,6 +9,10 @@ const findPlayer = (team, playerName) => {
   return team ? team.find((player) => player["name"] === playerName) : null;
 };
 
+const findPlayerById = (team, playerId) => {
+  return team ? team.find((player) => player["id"]["id"] === playerId) : null;
+};
+
 const inPlaylist = (replayStats, playlist) => {
   return replayStats["playlist_id"] === playlist ? true : false;
 };
@@ -55,6 +59,15 @@ const getPlayerStats = (replayStats, playerName) => {
     findPlayer(blueTeam, playerName) || findPlayer(orangeTeam, playerName);
 
   return player ? player["stats"] : null;
+};
+
+const getPlayerNameById = (replayStats, playerId) => {
+  const { blueTeam, orangeTeam } = getTeams(replayStats);
+
+  const player =
+    findPlayerById(blueTeam, playerId) || findPlayerById(orangeTeam, playerId);
+
+  return player ? player["name"] : "";
 };
 
 const splitReplayDate = (replayStats) => {
@@ -167,4 +180,5 @@ export const wrappedUtils = {
   inPlaylist: withReplayStats(inPlaylist),
   splitReplayDate: withReplayStats(splitReplayDate),
   isPlayerMVP: withReplayStats(isPlayerMVP),
+  getPlayerNameById: withReplayStats(getPlayerNameById),
 };

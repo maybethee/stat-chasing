@@ -29,7 +29,6 @@ ChartJS.register(
 function Stats() {
   const { replays, playerName } = useReplays();
 
-  // need to ensure this game is a winning game
   function highestGoalDifferenceGame() {
     const winningReplays = replays.filter((replay) => {
       const isWinner = wrappedUtils.isPlayerWinner(replay, playerName);
@@ -326,9 +325,6 @@ function Stats() {
     .reverse()
     .concat(gamesLostGoalDiffs());
 
-  // note: i was thinking about whether i should be filtering the replays array in these kinds of functions because i'm currently fetching replays via uploader id, which, if i'm looking for stats for 'tofu' in 'BijouBug' uploaded replays, they may be skewed because i won't be in all of  his replays (when he plays 2s with andre for example)
-
-  // however, i think this would be unnecessarily fixing a problem i should fix earlier in my backend. namely, i should filter by player_id as i'd done at the start, and ensure i'm not getting duplicates by filtering those via the GUID (a constant ID even among dup replays)
   function avgMVPInAllGames() {
     const sum = replays.reduce((sum, replay) => {
       if (wrappedUtils.isPlayerMVP(replay, playerName)) {
@@ -341,7 +337,7 @@ function Stats() {
   }
 
   function avgMVPInWins() {
-    // re: above note: this filter is necessary to differentiate from the above statistic, so do not remove this one
+    // note: this filter is necessary to differentiate from the above statistic
     const filteredReplays = replays.filter((replay) => {
       const isWinner = wrappedUtils.isPlayerWinner(replay, playerName);
       return isWinner;
@@ -384,16 +380,19 @@ function Stats() {
 
   return (
     <div>
+      <h2>{playerName}'s Stats:</h2>
+      <br />
+      <br />
       average MVPs out of all games: {avgMVPInAllGames()}
       <br />
       <br />
       average MVPs out of only wins: {avgMVPInWins()}
       <br />
       <br />
-      average games played per session: {avgGamesPlayedPerSession()}
+      average ranked games played per session: {avgGamesPlayedPerSession()}
       <br />
       <br />
-      average games played per day: {avgGamesPlayedPerDay()}
+      average ranked games played per day: {avgGamesPlayedPerDay()}
       <br />
       <br />
       {formatDateWithMostReplays()}

@@ -8,7 +8,7 @@ const ReplaysProvider = ({ children }) => {
   const [replays, setReplays] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [playerName, setPlayerName] = useState("tofu"); // set this programmatically later
+  const [playerName, setPlayerName] = useState(null);
 
   return (
     <ReplaysContext.Provider
