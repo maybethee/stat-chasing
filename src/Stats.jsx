@@ -1,7 +1,8 @@
 import { wrappedUtils } from "./utils";
 import { useReplays } from "./ReplaysContext";
-import OvertimeStats from "./OvertimeStats";
 import WinLossStats from "./WinLossStats";
+import DateStats from "./DateStats";
+import OvertimeStats from "./OvertimeStats";
 import DemoStats from "./DemoStats";
 import MovementStats from "./MovementStats";
 import { Bar } from "react-chartjs-2";
@@ -180,147 +181,6 @@ function Stats() {
     );
   }
 
-  //
-
-  function groupReplaysByDate() {
-    const dateGroups = {};
-    replays.forEach((replay) => {
-      const date = wrappedUtils.splitReplayDate(replay);
-      if (!dateGroups[date]) {
-        dateGroups[date] = [];
-      }
-      dateGroups[date].push(replay);
-    });
-    return dateGroups;
-  }
-
-  function groupWinsByDate(dateGroups) {
-    const winsByDate = {};
-    for (const date in dateGroups) {
-      winsByDate[date] = dateGroups[date].reduce((count, replay) => {
-        return (
-          count + (wrappedUtils.isPlayerWinner(replay, playerName) ? 1 : 0)
-        );
-      }, 0);
-    }
-    return winsByDate;
-  }
-
-  function dateWithMostWins(winsByDate) {
-    return Object.entries(winsByDate).reduce(
-      (acc, [date, wins]) => {
-        if (wins > acc.maxVal) {
-          acc.maxVal = wins;
-          acc.maxKeys = [date];
-        } else if (wins === acc.maxVal) {
-          acc.maxKeys.push(date);
-        }
-        return acc;
-      },
-      { maxVal: 0, maxKeys: [] }
-    );
-  }
-
-  const dateWithMostReplays = (dateGroups) => {
-    return Object.entries(dateGroups).reduce(
-      (acc, [date, replays]) => {
-        const count = replays.length;
-        if (count > acc.maxVal) {
-          acc.maxVal = count;
-          acc.maxKeys = [date];
-        } else if (count === acc.maxVal) {
-          acc.maxKeys.push(date);
-        }
-        return acc;
-      },
-      { maxVal: 0, maxKeys: [] }
-    );
-  };
-
-  function formatDateWithMostWins() {
-    const dateGroups = groupReplaysByDate(replays);
-    const winsByDate = groupWinsByDate(dateGroups);
-    const { maxVal, maxKeys } = dateWithMostWins(winsByDate);
-
-    return (
-      "date(s) with most wins: " +
-      maxKeys
-        .map((key) => {
-          const keyDate = new Date(key).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          });
-          return `${keyDate}, with ${maxVal} wins`;
-        })
-        .join(", ")
-    );
-  }
-
-  function avgGamesPlayedPerSession() {
-    const dateGroups = groupReplaysByDate(replays);
-    console.log("date groups arr:", dateGroups);
-
-    let gamesPlayed = [];
-    Object.entries(dateGroups).forEach((date) => {
-      // console.log("date", date[1].length);
-      gamesPlayed.push(date[1].length);
-    });
-
-    console.log("games played:", gamesPlayed);
-
-    const sum = gamesPlayed.reduce((sum, date) => sum + date, 0);
-    const avg = sum / gamesPlayed.length;
-    return avg.toFixed(2);
-  }
-
-  function avgGamesPlayedPerDay() {
-    const dateGroups = groupReplaysByDate(replays);
-    // console.log("date groups arr:", dateGroups);
-
-    const dates = Object.keys(dateGroups).sort();
-    const firstDate = new Date(dates[0]);
-    const lastDate = new Date(dates[dates.length - 1]);
-
-    let currentDate = new Date(firstDate);
-    let gamesPlayed = [];
-
-    while (currentDate <= lastDate) {
-      const dateString = currentDate.toISOString().split("T")[0];
-      if (dateGroups[dateString]) {
-        gamesPlayed.push(dateGroups[dateString].length);
-      } else {
-        gamesPlayed.push(0);
-      }
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-
-    // console.log("games played:", gamesPlayed);
-
-    const sum = gamesPlayed.reduce((sum, games) => sum + games, 0);
-    const avg = sum / gamesPlayed.length;
-    return avg.toFixed(2);
-  }
-
-  function formatDateWithMostReplays() {
-    const dateGroups = groupReplaysByDate(replays);
-    const { maxVal, maxKeys } = dateWithMostReplays(dateGroups);
-
-    return (
-      "date(s) with most played games: " +
-      maxKeys
-        .map((key) => {
-          const keyDate = new Date(key).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          });
-          return `${keyDate}, with ${maxVal} games`;
-        })
-        .join(", ")
-    );
-  }
-
   const combinedGoalDiffs = gamesWonGoalDiffs()
     .reverse()
     .concat(gamesLostGoalDiffs());
@@ -389,18 +249,6 @@ function Stats() {
       average MVPs out of only wins: {avgMVPInWins()}
       <br />
       <br />
-      average ranked games played per session: {avgGamesPlayedPerSession()}
-      <br />
-      <br />
-      average ranked games played per day: {avgGamesPlayedPerDay()}
-      <br />
-      <br />
-      {formatDateWithMostReplays()}
-      <br />
-      <br />
-      {formatDateWithMostWins()}
-      <br />
-      <br />
       {formatMapWithMostReplays()}
       <br />
       <br />
@@ -408,6 +256,9 @@ function Stats() {
       <div style={{ fontSize: "1.1rem" }}>
         <br />
         <WinLossStats />
+        <br />
+        <br />
+        <DateStats />
         <br />
         <br />
         <OvertimeStats />
