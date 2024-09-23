@@ -18,6 +18,7 @@ function App() {
   } = useReplays();
 
   const [playerId, setPlayerId] = useState("");
+  const [inputError, setInputError] = useState(null);
   const matchGuids = new Set();
   const initialFetch = useRef(true);
 
@@ -44,10 +45,15 @@ function App() {
           return true;
         }
       });
-      console.log("Unique replays:", uniqueReplays);
+      // console.log("Unique replays:", uniqueReplays);
 
       // setReplays((prevReplays) => [...prevReplays, ...uniqueReplays]);
       setReplays([...uniqueReplays]);
+
+      if (uniqueReplays.length > 0) {
+        await setPlayerNameUsingReplay(uniqueReplays, playerId);
+      }
+
       const endTime = new Date().getTime();
       const apiResponseTime = endTime - startTime;
       console.log("result:", apiResponseTime, "ms");
@@ -58,19 +64,32 @@ function App() {
     }
   };
 
-  // currently have to submit twice the first time before stats component appears, perhaps because of order of things?
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setLoading(true);
-    fetchReplays(playerId);
-    getPlayerName(playerId);
-  };
-
-  function getPlayerName(playerId) {
+  const setPlayerNameUsingReplay = async (replays, playerId) => {
     const splitId = playerId.split(":")[1];
     const newPlayerName = wrappedUtils.getPlayerNameById(replays[0], splitId);
     setPlayerName(newPlayerName);
-  }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setInputError(null);
+
+    const urlPattern =
+      /^https:\/\/ballchasing\.com\/player\/([^\/]+\/[a-zA-Z0-9]+)$/;
+    const match = playerId.match(urlPattern);
+
+    if (!match) {
+      setInputError(
+        "Invalid URL format. The URL should look like the one displayed above"
+      );
+      setLoading(false);
+      return;
+    }
+
+    const trimmedPlayerId = match[1].replace("/", ":");
+    fetchReplays(trimmedPlayerId);
+  };
 
   useEffect(() => {
     if (initialFetch.current) {
@@ -88,39 +107,34 @@ function App() {
       </p>
     );
 
-  console.log("player name:", playerName);
-  console.log(
-    replays.map((replay) => {
-      return replay["replay_stats"][0]["stats"];
-    })
-  );
+  // console.log("player name:", playerName);
+  // console.log(
+  //   replays.map((replay) => {
+  //     return replay["replay_stats"][0]["stats"];
+  //   })
+  // );
 
   return (
     <div>
       <h1>Statchasing</h1>
-
+      <br />
+      <br />
       <form onSubmit={handleSubmit}>
         <label>
-          player IDs can be found in the URL of a player's Ballchasing profile,
-          formatted as the platform followed by the ID number/name, replacing
-          the slash (/) in the URL with a colon (:)
+          copy and paste a player's ballchasing profile URL.
+          (https://ballchasing.com/player/steam/76561198136291441)
           <br />
-          <br />
-          steam:76561198136291441
-          <br />
-          epic:b843b77c31e74c6fa970db08f5796805
-          <br />
-          ps4:badwifibro
           <br />
           <input
             type="text"
             value={playerId}
             onChange={(e) => setPlayerId(e.target.value)}
-            placeholder="Enter Player ID"
+            placeholder="Enter ballchasing player URL"
           />
         </label>
         <button type="submit">Get Replays</button>
       </form>
+      {inputError && <p className="error">{inputError}</p>}
 
       {/* would like to display a message when a player wasn't found/when player has no replays available */}
       {playerName && (
