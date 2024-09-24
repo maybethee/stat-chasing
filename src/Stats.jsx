@@ -5,6 +5,7 @@ import DateStats from "./DateStats";
 import OvertimeStats from "./OvertimeStats";
 import DemoStats from "./DemoStats";
 import MovementStats from "./MovementStats";
+import CarStats from "./CarStats";
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -254,6 +255,9 @@ function Stats() {
       <br />
       {formatMapWithMostWins()}
       <div style={{ fontSize: "1.1rem" }}>
+        <br />
+        <CarStats />
+        <br />
         <br />
         <WinLossStats />
         <br />

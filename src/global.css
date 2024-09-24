@@ -60,3 +60,10 @@ h1 {
 h2 {
   font-size: 2rem;
 }
+
+table,
+th,
+td {
+  border: 2px solid;
+  padding: 0.4rem 0.4rem;
+}

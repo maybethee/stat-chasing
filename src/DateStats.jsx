@@ -44,9 +44,13 @@ function DateStats() {
     );
   }
 
+  // look over this function
   const dateWithMostReplays = (dateGroups) => {
     return Object.entries(dateGroups).reduce(
       (acc, [date, replays]) => {
+        console.log("acc:", acc);
+        console.log("date:", date);
+        console.log("acc:", replays);
         const count = replays.length;
         if (count > acc.maxVal) {
           acc.maxVal = count;
@@ -234,11 +238,16 @@ function DateStats() {
       "date(s) with most played games: " +
       maxKeys
         .map((key) => {
-          const keyDate = new Date(key).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          });
+          // add time zone to prevent subtracting a day from date
+          const keyDate = new Date(key + "T00:00:00").toLocaleDateString(
+            "en-US",
+            {
+              timeZone: "UTC",
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            }
+          );
           return `${keyDate}, with ${maxVal} games`;
         })
         .join(", ")

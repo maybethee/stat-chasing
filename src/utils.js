@@ -17,6 +17,20 @@ const inPlaylist = (replayStats, playlist) => {
   return replayStats["playlist_id"] === playlist ? true : false;
 };
 
+const withUsedCar = (replayStats, playerName, carName) => {
+  const usedCar = getUsedCar(replayStats, playerName);
+  return usedCar === carName ? true : false;
+};
+
+const getUsedCar = (replayStats, playerName) => {
+  const { blueTeam, orangeTeam } = getTeams(replayStats);
+
+  const player =
+    findPlayer(blueTeam, playerName) || findPlayer(orangeTeam, playerName);
+
+  return player["car_name"] ? player["car_name"] : null;
+};
+
 const getTeams = (replayStats) => {
   const blueTeam = replayStats["blue"] ? replayStats["blue"]["players"] : [];
   const orangeTeam = replayStats["orange"]
@@ -157,6 +171,33 @@ const getOvertimeSeconds = (replayStats) => {
   return replayStats["overtime_seconds"];
 };
 
+const getMainCoreStats = (replayStats, playerName) => {
+  const playerStats = getPlayerStats(replayStats, playerName);
+  if (!playerStats || !playerStats["core"]) {
+    console.error("Invalid player stats");
+    return {};
+  }
+
+  const corePlayerStats = playerStats["core"];
+  // console.log(corePlayerStats);
+
+  const stats = [
+    "shots",
+    "goals",
+    "saves",
+    "assists",
+    "score",
+    "shooting_percentage",
+  ];
+  const coreStats = {};
+
+  stats.forEach((stat) => {
+    coreStats[stat] = corePlayerStats[stat] || 0;
+  });
+
+  return coreStats;
+};
+
 const isPlayerMVP = (replayStats, playerName) => {
   const playerStats = getPlayerStats(replayStats, playerName);
 
@@ -181,4 +222,7 @@ export const wrappedUtils = {
   splitReplayDate: withReplayStats(splitReplayDate),
   isPlayerMVP: withReplayStats(isPlayerMVP),
   getPlayerNameById: withReplayStats(getPlayerNameById),
+  getUsedCar: withReplayStats(getUsedCar),
+  withUsedCar: withReplayStats(withUsedCar),
+  getMainCoreStats: withReplayStats(getMainCoreStats),
 };
